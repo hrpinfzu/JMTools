@@ -3,26 +3,15 @@ import IceContainer from '@icedesign/container';
 import {
   Input,
   Button,
-  Checkbox,
   Select,
-  DatePicker,
   Icon,
-  Radio,
-  Grid,
   Form,
+  Message,
 } from '@alifd/next';
 import axios from 'axios';
 import { isNumber } from 'util';
 
-const { AutoComplete } = Select;
-const { Row, Col } = Grid;
-
-// FormBinder 用于获取表单组件的数据，通过标准受控 API value 和 onChange 来双向操作数据
-const CheckboxGroup = Checkbox.Group;
-const RadioGroup = Radio.Group;
-const { RangePicker } = DatePicker;
 const FormItem = Form.Item;
-
 
 const formItemLayout = {
   labelCol: { xxs: "6", s: "2", l: "2", },
@@ -34,8 +23,8 @@ let timestamp = Date.now();
 const gitlabHost = 'http://192.168.88.224:8081';
 const privateToken = 'zdtv8eVH5zSL6jnq_6wb';
 
-export default class CreateActivityForm extends Component {
-  static displayName = 'CreateActivityForm';
+export default class AddTagForm extends Component {
+  static displayName = 'AddTagForm';
 
   static defaultProps = {};
 
@@ -47,13 +36,16 @@ export default class CreateActivityForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: {
-        project: '',
-        branch: '',
-        tag: '',
-        message: '',
-        publish: '',
-      },
+      id: '',
+      project: 'test',
+      projectName: 'test',
+      branch: 'test',
+      tag: 'test',
+      message: 'message',
+      publish: 'publish',
+      tagMerge: 0,
+      sourceBranch: 'source',
+      targetBranch: 'target',
     };
     this.projectSearch();
   }
@@ -66,22 +58,35 @@ export default class CreateActivityForm extends Component {
 
   reset = () => {
     this.setState({
-      value: {
-        project: '',
-        branch: '',
-        tag: '',
-        message: '',
-        publish: '',
-      }
+      project: '',
+      projectName: '',
+      branch: '',
+      tag: '',
+      message: '',
+      publish: '',
+      tagMerge: 0,
+      sourceBranch: '',
+      targetBranch: '',
+      dsBranches: [],
     });
   };
 
   submit = (value, error) => {
-    console.log('error', error, 'value', value);
     if (error) {
-      // 处理表单报错
+      Message.error('请填写完整后添加');
+      return;
     }
+    
+    // 拼装表格展示的字段内容
+    value = this.state;
+    value.id = `${this.state.project}_${this.state.tag}`;
+    value.tagMemo = `${this.state.tag} 项目：${this.state.project} 分支：${this.state.branch} 消息：${this.state.message} 发行说明：${this.state.publish}`;
     // 提交当前填写的数据
+    if (this.props.addTag) {
+      if (!this.props.addTag(this.state)) {
+        Message.error('请勿重复添加');
+      }
+    }
   };
 
   projectSearch = (value) => {
@@ -108,10 +113,34 @@ export default class CreateActivityForm extends Component {
     }, 100);
   };
 
-  projectChange = (input) => {
-    this.setState({value: {message: 'test'}});
-    this.loadProjectBranches(input);
-  }
+  projectChange = (value, actionType, item) => {
+    this.setState({
+      project: value,
+      projectName: item.label,
+      branch: '',
+      tag: ''
+    });
+
+    this.setState({
+      dsBranches: []
+    });
+
+    if (value !== '') {
+      this.loadProjectBranches(value);
+    }
+  };
+
+  branchChange = (value) => {
+    this.setState({
+      branch: value
+    });
+  };
+
+  tagChange = (value) => {
+    this.setState({
+      tag: value
+    });
+  };
 
   loadProjectBranches = (value) => {
     if (this.searchTimeout) {
@@ -144,27 +173,27 @@ export default class CreateActivityForm extends Component {
               required
               requiredMessage="请选择项目"
             >
-              <Select placeholder="选择需要打签的项目" showSearch hasArrow={false} hasClear name='project' filterLocal={false} dataSource={this.state.dsProjects} onChange={this.projectChange} onSearch={this.projectSearch} style={{ width: 300 }} />
+              <Select placeholder="选择需要打签的项目" showSearch hasArrow={false} hasClear name='project' filterLocal={false} dataSource={this.state.dsProjects} value={this.state.project} onChange={this.projectChange.bind(this)} onSearch={this.projectSearch} style={{ width: 300 }} />
             </FormItem>
 
             <FormItem {...formItemLayout} label="分支："
               required
               requiredMessage="请选择对应分支"
             >
-              <Select placeholder="选择需要打签的分支" showSearch hasArrow={false} hasClear name='branch' filterLocal={true} dataSource={this.state.dsBranches} style={{ width: 300 }} />
+              <Select placeholder="选择需要打签的分支" showSearch hasArrow={false} hasClear name='branch' filterLocal={true} dataSource={this.state.dsBranches} value={this.state.branch} onChange={this.branchChange} style={{ width: 300 }} />
             </FormItem>
 
             <FormItem {...formItemLayout} label="标签："
               required
               requiredMessage="请输入标签"
             >
-              <Input placeholder="请输入标签或点击推荐" name="tag" style={{ width: 300 }} />
+              <Input placeholder="请输入标签或点击推荐" name="tag" value={this.state.tag} onChange={this.tagChange} style={{ width: 300 }} />
               &nbsp;&nbsp;
               <Button type="secondary" size="small"><Icon type="arrow-double-left" />获取推荐</Button>
             </FormItem>
 
             <FormItem {...formItemLayout} label="消息：">
-              <Input placeholder="示例：售后模块提测" name="message" style={{ width: 300 }} />
+              <Input placeholder="示例：售后模块提测" name="message" style={{ width: 300 }}/>
             </FormItem>
 
             <FormItem {...formItemLayout} label="发布说明：">
@@ -172,7 +201,7 @@ export default class CreateActivityForm extends Component {
             </FormItem>
 
             <FormItem {...formItemLayout} label=" ">
-              <Form.Submit type="primary" validate onClick={this.submit}>
+              <Form.Submit type="secondary" validate onClick={this.submit}>
                 添加
                   </Form.Submit>
               <Form.Reset style={styles.resetBtn} onClick={this.reset}>
