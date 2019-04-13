@@ -4,16 +4,11 @@
 
 import UserLogin from './pages/UserLogin';
 import UserRegister from './pages/UserRegister';
-import Dashboard from './pages/Dashboard';
 
-import OrderList from './pages/OrderList';
-
-import AddOrder from './pages/AddOrder';
 import AddTags from './pages/AddTags';
 import AddMergeRequest from './pages/AddMergeRequest';
 import MergeRequests from './pages/MergeRequests';
 import WelcomePage from './pages/WelcomePage';
-import AddGoods from './pages/AddGoods';
 
 const routerConfig = [
   {
@@ -23,22 +18,6 @@ const routerConfig = [
   {
     path: '/user/register',
     component: UserRegister,
-  },
-  {
-    path: '/dashboard',
-    component: Dashboard,
-  },
-  {
-    path: '/order/list',
-    component: OrderList,
-  },
-  {
-    path: '/add/order',
-    component: AddOrder,
-  },
-  {
-    path: '/add/goods',
-    component: AddGoods,
   },
   {
     path: '/gitlab/addtags',
