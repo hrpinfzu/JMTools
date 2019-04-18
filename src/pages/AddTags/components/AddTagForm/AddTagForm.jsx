@@ -76,7 +76,7 @@ export default class AddTagForm extends Component {
       Message.error('请填写完整后添加');
       return;
     }
-    
+
     // 拼装表格展示的字段内容
     value = this.state;
     value.id = `${this.state.project}_${this.state.tag}`;
@@ -99,7 +99,7 @@ export default class AddTagForm extends Component {
       if (value && value !== '') {
         getProjectUrl = `${getProjectUrl}&search=${value}`
       }
-      
+
       axios(getProjectUrl).then((response) => {
         const { data } = response;
         const dataSource = data.map(item => {
@@ -116,7 +116,7 @@ export default class AddTagForm extends Component {
   projectChange = (value, actionType, item) => {
     this.setState({
       project: value,
-      projectName: item.label,
+      projectName: item ? item.label : '',
       branch: '',
       tag: ''
     });
@@ -139,6 +139,18 @@ export default class AddTagForm extends Component {
   tagChange = (value) => {
     this.setState({
       tag: value
+    });
+  };
+
+  messageChange = (value) => {
+    this.setState({
+      message: value
+    });
+  };
+
+  publishChange = (value) => {
+    this.setState({
+      publish: value
     });
   };
 
@@ -189,15 +201,15 @@ export default class AddTagForm extends Component {
             >
               <Input placeholder="请输入标签或点击推荐" name="tag" value={this.state.tag} onChange={this.tagChange} style={{ width: 300 }} />
               &nbsp;&nbsp;
-              <Button type="secondary" size="small"><Icon type="arrow-double-left" />获取推荐</Button>
+              <Button type="secondary" size="small">已有标签<Icon type="arrow-double-right" /></Button>
             </FormItem>
 
             <FormItem {...formItemLayout} label="消息：">
-              <Input placeholder="示例：售后模块提测" name="message" style={{ width: 300 }}/>
+              <Input placeholder="示例：售后模块提测" name="message" value={this.state.message} onChange={this.messageChange} style={{ width: 300 }} />
             </FormItem>
 
             <FormItem {...formItemLayout} label="发布说明：">
-              <Input placeholder="示例：1、xxx新特性；2、修复xxx问题" name="publish" style={{ width: 300 }} />
+              <Input placeholder="示例：1、xxx新特性；2、修复xxx问题" name="publish" value={this.state.publish} onChange={this.publishChange} style={{ width: 300 }} />
             </FormItem>
 
             <FormItem {...formItemLayout} label=" ">
@@ -220,9 +232,9 @@ const styles = {
     paddingBottom: 0,
   },
   formItem: {
-    height: '28px',
-    lineHeight: '28px',
-    marginBottom: '25px',
+    height: '20px',
+    lineHeight: '20px',
+    marginBottom: '10px',
   },
   formLabel: {
     textAlign: 'right',
